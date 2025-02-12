@@ -1,5 +1,5 @@
 // Theme management
-function setTheme(isDark) {
+async function setTheme(isDark) {
     const sunIcon = document.getElementById('sunIcon');
     const moonIcon = document.getElementById('moonIcon');
 
@@ -18,7 +18,7 @@ function setTheme(isDark) {
     }
     
     // Re-render diagram with new theme
-    updateDiagram();
+    await updateDiagram();
 }
 
 function toggleTheme() {
@@ -27,30 +27,48 @@ function toggleTheme() {
 }
 
 // Initialize theme
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // Check for saved theme preference or system preference
     const savedTheme = localStorage.getItem('theme');
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
     if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
-        setTheme(true);
+        await setTheme(true);
     } else {
-        setTheme(false);
+        await setTheme(false);
     }
     
     // Initialize mermaid
-    mermaid.initialize({
-        startOnLoad: true,
+    await mermaid.initialize({
+        startOnLoad: false, // Changed to false since we'll render manually
         theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
         securityLevel: 'loose'
     });
     
     // Initial diagram render
-    updateDiagram();
+    const input = document.getElementById('mermaidInput');
+    const output = document.getElementById('mermaidOutput');
+    
+    try {
+        // Clear previous diagram
+        output.innerHTML = '';
+        
+        // Render new diagram
+        const { svg } = await mermaid.render('mermaid-diagram', input.value);
+        output.innerHTML = svg;
+        
+        const svgElement = output.querySelector('svg');
+        if (svgElement && !svgElement.getAttribute('viewBox')) {
+            const bbox = svgElement.getBBox();
+            svgElement.setAttribute('viewBox', `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
+        }
+    } catch (error) {
+        output.innerHTML = `<div class="text-red-500 dark:text-red-400">Error rendering diagram: ${error.message}</div>`;
+    }
 });
 
 // Update diagram when theme changes
-function updateDiagram() {
+async function updateDiagram() {
     const input = document.getElementById('mermaidInput');
     const output = document.getElementById('mermaidOutput');
     
@@ -59,30 +77,23 @@ function updateDiagram() {
         output.innerHTML = '';
         
         // Set theme based on current mode
-        mermaid.initialize({
-            startOnLoad: true,
+        await mermaid.initialize({
+            startOnLoad: false,
             theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
             securityLevel: 'loose'
         });
         
         // Render new diagram
-        mermaid.render('mermaid-diagram', input.value)
-            .then(({ svg }) => {
-                output.innerHTML = svg;
-                const svgElement = output.querySelector('svg');
-                if (svgElement) {
-                    // Set initial viewBox if not present
-                    if (!svgElement.getAttribute('viewBox')) {
-                        const bbox = svgElement.getBBox();
-                        svgElement.setAttribute('viewBox', `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
-                    }
-                }
-            })
-            .catch(error => {
-                output.innerHTML = `<div class="text-red-500 dark:text-red-400">Error rendering diagram: ${error.message}</div>`;
-            });
+        const { svg } = await mermaid.render('mermaid-diagram', input.value);
+        output.innerHTML = svg;
+        
+        const svgElement = output.querySelector('svg');
+        if (svgElement && !svgElement.getAttribute('viewBox')) {
+            const bbox = svgElement.getBBox();
+            svgElement.setAttribute('viewBox', `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
+        }
     } catch (error) {
-        output.innerHTML = `<div class="text-red-500 dark:text-red-400">Error: ${error.message}</div>`;
+        output.innerHTML = `<div class="text-red-500 dark:text-red-400">Error rendering diagram: ${error.message}</div>`;
     }
 }
 
