@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>N-Mermaid - Simple Mermaid Diagram Viewer</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="A simple, elegant Mermaid diagram viewer and editor with export capabilities. Create, edit, and export Mermaid diagrams with ease.">
+    <meta name="keywords" content="mermaid, diagram, flowchart, sequence diagram, gantt chart, editor, viewer">
+    <meta name="author" content="Mohamed Elashri">
+    
+    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:title" content="N-Mermaid - Simple Mermaid Diagram Viewer">
+    <meta property="og:description" content="A simple, elegant Mermaid diagram viewer and editor with export capabilities.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://melashri.net/n-mermaid">
+    
+    <!-- Scripts and Styles -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.8.0/dist/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 min-h-screen flex flex-col">
+    <header class="bg-white dark:bg-gray-800 shadow">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex-1"></div> 
+                <div class="flex-1 text-center">
+                    <a href="." class="text-2xl font-bold text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300 transition">
+                        Mermaid Diagram Viewer
+                    </a>
+                </div>
+                <div class="flex-1 flex justify-end">
+                    <button id="themeToggle" class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                        <!-- Sun icon for dark mode -->
+                        <svg id="sunIcon" class="w-6 h-6 hidden text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <!-- Moon icon for light mode -->
+                        <svg id="moonIcon" class="w-6 h-6 hidden text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    <div class="container mx-auto p-4 flex-grow">
+        <div class="flex justify-between items-center mb-6">
+        </div>
+        
+        <div class="flex flex-col gap-4">
+            <!-- Input Section -->
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+                <textarea id="mermaidInput" class="w-full h-64 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" 
+                    placeholder="Enter your Mermaid diagram code here...">graph TD
+    A[Start] --> B{Is it working?}
+    B -->|Yes| C[Great!]
+    B -->|No| D[Debug]</textarea>
+                <div class="mt-4 space-x-2">
+                    <button onclick="updateDiagram()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
+                        Update Diagram
+                    </button>
+                    <button onclick="exportPNG()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">
+                        Export PNG
+                    </button>
+                    <button onclick="exportSVG()" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition">
+                        Export SVG
+                    </button>
+                    <button onclick="exportPDF()" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition">
+                        Export PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="text-gray-700 dark:text-gray-300 font-medium">Preview</div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="zoomOut()" class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                            </svg>
+                        </button>
+                        <span id="zoomLevel" class="text-gray-600 dark:text-gray-400">100%</span>
+                        <button onclick="zoomIn()" class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div id="mermaidOutput" class="flex justify-center items-center min-h-[200px] overflow-auto"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-gray-800 shadow mt-auto">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row justify-center items-center space-y-2 md:space-y-0 md:space-x-6 text-sm text-gray-600 dark:text-gray-400">
+                <a href="https://github.com/MohamedElashri/n-mermaid" class="hover:text-gray-900 dark:hover:text-gray-200 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
+                    </svg>
+                    GitHub Repository
+                </a>
+                <a href="https://mermaid.js.org/intro/" class="hover:text-gray-900 dark:hover:text-gray-200 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    Mermaid Documentation
+                </a>
+            </div>
+        </div>
+    </footer>
+    <script src="main.js"></script>
+</body>
+</html>
