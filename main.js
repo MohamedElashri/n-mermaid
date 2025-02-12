@@ -227,23 +227,29 @@ async function exportPNG() {
         await withLightTheme(async () => {
             const svgElement = getMermaidSVG();
             const bbox = svgElement.getBBox();
+            const viewBox = svgElement.getAttribute('viewBox')?.split(' ').map(Number) || [0, 0, bbox.width, bbox.height];
+            
+            // Calculate actual dimensions
+            const width = Math.abs(viewBox[2]) + Math.abs(viewBox[0] * 2);
+            const height = Math.abs(viewBox[3]) + Math.abs(viewBox[1] * 2);
             
             // Create a temporary container
             const container = document.createElement('div');
             container.style.position = 'fixed';
             container.style.top = '0';
             container.style.left = '0';
-            container.style.width = `${bbox.width + (bbox.x * 2)}px`;
-            container.style.height = `${bbox.height + (bbox.y * 2)}px`;
+            container.style.width = `${width}px`;
+            container.style.height = `${height}px`;
             container.style.backgroundColor = '#ffffff';
             container.style.zIndex = '-1000';
             container.style.overflow = 'visible';
+            container.style.transform = 'scale(1)';
             
             // Clone the SVG and prepare it for export
             const svgClone = svgElement.cloneNode(true);
             svgClone.style.backgroundColor = '#ffffff';
-            svgClone.style.width = '100%';
-            svgClone.style.height = '100%';
+            svgClone.setAttribute('width', width);
+            svgClone.setAttribute('height', height);
             svgClone.style.overflow = 'visible';
             container.appendChild(svgClone);
             
@@ -260,8 +266,10 @@ async function exportPNG() {
                 allowTaint: false,
                 foreignObjectRendering: true,
                 letterRendering: true,
-                width: bbox.width + (bbox.x * 2),
-                height: bbox.height + (bbox.y * 2)
+                width: width,
+                height: height,
+                x: 0,
+                y: 0
             });
             
             // Cleanup
@@ -291,23 +299,29 @@ async function exportPDF() {
         await withLightTheme(async () => {
             const svgElement = getMermaidSVG();
             const bbox = svgElement.getBBox();
+            const viewBox = svgElement.getAttribute('viewBox')?.split(' ').map(Number) || [0, 0, bbox.width, bbox.height];
+            
+            // Calculate actual dimensions
+            const width = Math.abs(viewBox[2]) + Math.abs(viewBox[0] * 2);
+            const height = Math.abs(viewBox[3]) + Math.abs(viewBox[1] * 2);
             
             // Create a temporary container
             const container = document.createElement('div');
             container.style.position = 'fixed';
             container.style.top = '0';
             container.style.left = '0';
-            container.style.width = `${bbox.width + (bbox.x * 2)}px`;
-            container.style.height = `${bbox.height + (bbox.y * 2)}px`;
+            container.style.width = `${width}px`;
+            container.style.height = `${height}px`;
             container.style.backgroundColor = '#ffffff';
             container.style.zIndex = '-1000';
             container.style.overflow = 'visible';
+            container.style.transform = 'scale(1)';
             
             // Clone the SVG and prepare it for export
             const svgClone = svgElement.cloneNode(true);
             svgClone.style.backgroundColor = '#ffffff';
-            svgClone.style.width = '100%';
-            svgClone.style.height = '100%';
+            svgClone.setAttribute('width', width);
+            svgClone.setAttribute('height', height);
             svgClone.style.overflow = 'visible';
             container.appendChild(svgClone);
             
@@ -323,7 +337,11 @@ async function exportPDF() {
                 useCORS: true,
                 allowTaint: false,
                 foreignObjectRendering: true,
-                letterRendering: true
+                letterRendering: true,
+                width: width,
+                height: height,
+                x: 0,
+                y: 0
             });
             
             // Cleanup
@@ -334,9 +352,9 @@ async function exportPDF() {
                 const imgUrl = URL.createObjectURL(blob);
                 const { jsPDF } = window.jspdf;
                 
-                // Calculate PDF dimensions
-                const pdfWidth = (bbox.width / exportSettings.scale) * 0.264583; // convert px to mm
-                const pdfHeight = (bbox.height / exportSettings.scale) * 0.264583;
+                // Calculate PDF dimensions (convert pixels to mm, assuming 96 DPI)
+                const pdfWidth = (width / exportSettings.scale) * 0.264583;
+                const pdfHeight = (height / exportSettings.scale) * 0.264583;
                 
                 // Create PDF with custom dimensions plus margins
                 const pdf = new jsPDF({
