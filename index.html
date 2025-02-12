@@ -9,7 +9,7 @@
     <meta name="description" content="A simple, elegant Mermaid diagram viewer and editor with export capabilities. Create, edit, and export Mermaid diagrams with ease.">
     <meta name="keywords" content="mermaid, diagram, flowchart, sequence diagram, gantt chart, editor, viewer">
     <meta name="author" content="Mohamed Elashri">
-    
+    f
     <!-- Open Graph / Social Media Meta Tags -->
     <meta property="og:title" content="N-Mermaid - Simple Mermaid Diagram Viewer">
     <meta property="og:description" content="A simple, elegant Mermaid diagram viewer and editor with export capabilities.">
@@ -85,20 +85,22 @@
                 <div class="flex justify-between items-center mb-4">
                     <div class="text-gray-700 dark:text-gray-300 font-medium">Preview</div>
                     <div class="flex items-center space-x-2">
-                        <button onclick="zoomOut()" class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+                        <button id="zoomOutBtn" class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
                             </svg>
                         </button>
-                        <span id="zoomLevel" class="text-gray-600 dark:text-gray-400">100%</span>
-                        <button onclick="zoomIn()" class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+                        <span id="zoomLevel" class="text-gray-700 dark:text-gray-300">100%</span>
+                        <button id="zoomInBtn" class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                             </svg>
                         </button>
                     </div>
                 </div>
-                <div id="mermaidOutput" class="flex justify-center items-center min-h-[200px] overflow-auto"></div>
+                <div class="preview-container overflow-auto" style="max-height: 600px;">
+                    <div id="mermaidOutput" class="flex justify-center items-center transform-origin-center"></div>
+                </div>
             </div>
         </div>
     </div>

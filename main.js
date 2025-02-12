@@ -106,24 +106,59 @@ const ZOOM_STEP = 25;
 function updateZoom() {
     const output = document.getElementById('mermaidOutput');
     const zoomLevel = document.getElementById('zoomLevel');
+    if (output && zoomLevel) {
+        const scale = currentZoom / 100;
+        output.style.transform = `scale(${scale})`;
+        output.style.transformOrigin = 'center center';
+        zoomLevel.textContent = `${currentZoom}%`;
+        
+        // Add some padding to the container based on zoom level
+        const container = output.parentElement;
+        if (container) {
+            const padding = Math.max(20, (scale - 1) * 100);
+            container.style.padding = `${padding}px`;
+        }
+    }
+}
+
+let zoomTimeout = null;
+
+function handleZoom(increment) {
+    return function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (zoomTimeout !== null) {
+            return;
+        }
+
+        const newZoom = currentZoom + (increment ? ZOOM_STEP : -ZOOM_STEP);
+        if (newZoom >= MIN_ZOOM && newZoom <= MAX_ZOOM) {
+            currentZoom = newZoom;
+            updateZoom();
+        }
+
+        zoomTimeout = setTimeout(() => {
+            zoomTimeout = null;
+        }, 150);
+    };
+}
+
+// Initialize zoom controls
+document.addEventListener('DOMContentLoaded', () => {
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
     
-    output.style.transform = `scale(${currentZoom / 100})`;
-    zoomLevel.textContent = `${currentZoom}%`;
-}
-
-function zoomIn() {
-    if (currentZoom < MAX_ZOOM) {
-        currentZoom += ZOOM_STEP;
-        updateZoom();
+    if (zoomInBtn) {
+        zoomInBtn.addEventListener('click', handleZoom(true));
     }
-}
-
-function zoomOut() {
-    if (currentZoom > MIN_ZOOM) {
-        currentZoom -= ZOOM_STEP;
-        updateZoom();
+    if (zoomOutBtn) {
+        zoomOutBtn.addEventListener('click', handleZoom(false));
     }
-}
+    
+    // Initial zoom update
+    updateZoom();
+});
 
 // Export settings
 const exportSettings = {
